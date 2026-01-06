@@ -153,8 +153,8 @@ export function CreateJobModal({ isOpen, onClose }: CreateJobModalProps) {
                 >
                   <option value="Full-time">Full-time</option>
                   <option value="Part-time">Part-time</option>
-                  <option value="Remote">Remote</option>
-                  <option value="Freelance">Freelance</option>
+                   <option value="Remote">Remote</option>
+                    <option value="Freelance">Freelance</option>
                   <option value="Internship">Internship</option>
                 </select>
               </div>
