@@ -4,27 +4,46 @@ package com.apiweb.model;
 import java.time.LocalDate;
 import java.util.List;
 
+import lombok.Data;
+@Data
 public class JobDTO {
 
+    // private Long id;
+    // private String title;
+    // private String companyName;     // Mới thêm
+    // private String salary;
+    // private String address ;
+    // private String typeOfJob;       // FULL_TIME, PART_TIME... (Gửi dạng String)
+    // private String description;
+
+    // // --- THAY ĐỔI QUAN TRỌNG ---
+    // // Frontend gửi lên mảng ["Yêu cầu 1", "Yêu cầu 2"]
+    // // -> Backend hứng bằng String
+    // private String requirements;
+
+    // private String benefits;
+    // // ---------------------------
+
+    // private LocalDate deadlineApply; // Hạn nộp hồ sơ
+    // private String status;           // DRAFT, PUBLISHED...
     private Long id;
     private String title;
-    private String companyName;     // Mới thêm
+    private String companyName;
     private String salary;
-    private String location;
-    private String typeOfJob;       // FULL_TIME, PART_TIME... (Gửi dạng String)
+    private String address;
+    private String typeOfJob;  // Để String để FE gửi lên (ví dụ: "FULL_TIME")
+    private String status;     // "PUBLISHED", "CLOSED", v.v.
+    private String deadlineApply; // Định dạng "yyyy-MM-dd"
+    private String createdAt;
+    
+    // Các trường chi tiết để lưu tin mới
     private String description;
+    private String requirement;
+    private String benefit;
+    private String department;
 
-    // --- THAY ĐỔI QUAN TRỌNG ---
-    // Frontend gửi lên mảng ["Yêu cầu 1", "Yêu cầu 2"]
-    // -> Backend hứng bằng List<String>
-    private List<String> requirements;
-
-    private List<String> benefits;
-    // ---------------------------
-
-    private LocalDate deadlineApply; // Hạn nộp hồ sơ
-    private String status;           // DRAFT, PUBLISHED...
-
+    // Giữ nguyên để không lỗi phần hiển thị cũ
+    private List<ApplyJobDTO> applications;
     // --- GETTERS AND SETTERS ---
 
     public Long getId() {
@@ -59,12 +78,12 @@ public class JobDTO {
         this.salary = salary;
     }
 
-    public String getLocation() {
-        return location;
+    public String getAddress() {
+        return address;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getTypeOfJob() {
@@ -83,27 +102,27 @@ public class JobDTO {
         this.description = description;
     }
 
-    public List<String> getRequirements() {
-        return requirements;
+    public String getRequirement() {
+        return requirement;
     }
 
-    public void setRequirements(List<String> requirements) {
-        this.requirements = requirements;
+    public void setRequirement(String requirement) {
+        this.requirement = requirement;
     }
 
-    public List<String> getBenefits() {
-        return benefits;
+    public String getBenefit() {
+        return benefit;
     }
 
-    public void setBenefits(List<String> benefits) {
-        this.benefits = benefits;
+    public void setBenefit(String benefit) {
+        this.benefit = benefit;
     }
 
-    public LocalDate getDeadlineApply() {
+    public String getDeadlineApply() {
         return deadlineApply;
     }
 
-    public void setDeadlineApply(LocalDate deadlineApply) {
+    public void setDeadlineApply(String deadlineApply) {
         this.deadlineApply = deadlineApply;
     }
 
@@ -114,4 +133,19 @@ public class JobDTO {
     public void setStatus(String status) {
         this.status = status;
     }
-}
+
+    // public String getDepartment() {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'getDepartment'");
+    // }
+
+    // public String getRequirement() {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'getRequirement'");
+    // }
+
+    // public String getBenefit() {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'getBenefit'");
+    // }
+}   

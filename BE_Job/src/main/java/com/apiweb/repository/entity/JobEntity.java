@@ -2,12 +2,15 @@ package com.apiweb.repository.entity;
 
 import com.apiweb.enums.JobStatus;
 import com.apiweb.enums.JobType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
 
 @Entity
 @Table(name = "jobs")
+@AttributeOverride(name = "id", column = @Column(name = "job_id"))
 public class JobEntity extends BaseEntity {
 
     @Column(nullable = false)
@@ -43,11 +46,13 @@ public class JobEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private JobStatus status;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employer_id")
-    private UserEntity employer;
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
 
-    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL)
+    @JsonIgnore
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ApplyJobEntity> applications;
 
     // Getters and Setters...
@@ -134,12 +139,12 @@ public class JobEntity extends BaseEntity {
         this.status = status;
     }
 
-    public UserEntity getEmployer() {
-        return employer;
+    public UserEntity getUser() {
+        return user;
     }
 
-    public void setEmployer(UserEntity employer) {
-        this.employer = employer;
+    public void setUser(UserEntity user) {
+        this.user = user;
     }
 
     public List<ApplyJobEntity> getApplications() {

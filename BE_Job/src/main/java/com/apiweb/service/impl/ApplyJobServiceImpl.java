@@ -2,10 +2,10 @@ package com.apiweb.service.impl;
 
 import com.apiweb.enums.ApplyStatus;
 import com.apiweb.repository.ApplyJobRepository;
-import com.apiweb.repository.CVRepository;
+// import com.apiweb.repository.CVRepository; // 1. ẨN IMPORT
 import com.apiweb.repository.JobRepository;
 import com.apiweb.repository.entity.ApplyJobEntity;
-import com.apiweb.repository.entity.CVEntity;
+// import com.apiweb.repository.entity.CVEntity; // 2. ẨN IMPORT
 import com.apiweb.repository.entity.JobEntity;
 import com.apiweb.repository.entity.UserEntity;
 import com.apiweb.service.ApplyJobService;
@@ -28,18 +28,14 @@ public class ApplyJobServiceImpl implements ApplyJobService {
     @Autowired
     private JobRepository jobRepo;
 
-    @Autowired
-    private CVRepository cvRepo;
+    // @Autowired
+    // private CVRepository cvRepo; // 3. ẨN INJECT
 
     @Autowired
     private FileStorageService fileStorageService;
 
     @Override
     public ApplyJobEntity apply(Long jobId, MultipartFile file, String fullName, String phoneNumber, String note, UserEntity user) {
-
-        // ==================================================================
-        // BƯỚC 1: VALIDATE DỮ LIỆU ĐẦU VÀO
-        // ==================================================================
 
         // 1.1 Check Login
         if (user == null) throw new RuntimeException("UNAUTHORIZED");
@@ -59,109 +55,26 @@ public class ApplyJobServiceImpl implements ApplyJobService {
         }
 
         // ==================================================================
-        // BƯỚC 2: LOGIC "SMART FILL" & CHUẨN BỊ DỮ LIỆU
+        // ĐÃ ẨN LOGIC CV (BƯỚC 2, 4, 5)
         // ==================================================================
+        
+        /* Ẩn logic Master Profile và Snapshot CV
+        CVEntity masterProfile = cvRepo.findByUserIdAndIsDefaultTrue(user.getId()).orElse(null);
+        ... (toàn bộ logic CVEntity đã được bỏ qua)
+        */
 
-        // Tìm hồ sơ gốc hiện tại
-        CVEntity masterProfile = cvRepo.findByUserIdAndIsDefaultTrue(user.getId())
-                .orElse(null);
-
-        String finalName = fullName;
-        String finalPhone = phoneNumber;
-
-        // Auto-fill nếu input rỗng
-        if (finalName == null || finalName.trim().isEmpty()) {
-            if (masterProfile != null) finalName = masterProfile.getFullName();
-        }
-        if (finalPhone == null || finalPhone.trim().isEmpty()) {
-            if (masterProfile != null) finalPhone = masterProfile.getPhoneNumber();
-        }
-
-        // Chốt chặn validate cuối cùng
-        if (finalName == null || finalName.trim().isEmpty()) {
-            throw new RuntimeException("FULL_NAME_REQUIRED");
-        }
-        if (finalPhone == null || finalPhone.trim().isEmpty()) {
-            throw new RuntimeException("PHONE_REQUIRED");
-        }
-
-        // ==================================================================
-        // BƯỚC 3: LƯU FILE VẬT LÝ (Đẩy lên trước để lấy URL dùng cho cả 2 bước sau)
-        // ==================================================================
-
+        // Lưu file vẫn giữ lại để không lỗi logic storage
         String fileUrl = fileStorageService.storeFile(file);
-        String fileName = file.getOriginalFilename();
+        // String fileName = file.getOriginalFilename();
 
         // ==================================================================
-        // BƯỚC 4: CẬP NHẬT HỒ SƠ GỐC (MASTER PROFILE - is_default=1)
-        // (Bổ sung logic: Update luôn cả File mới vào hồ sơ gốc)
-        // ==================================================================
-
-        if (masterProfile == null) {
-            // TẠO MỚI (Lần đầu tiên)
-            masterProfile = new CVEntity();
-            masterProfile.setUser(user);
-            masterProfile.setIsDefault(true);
-
-            // Set thông tin cá nhân
-            masterProfile.setFullName(finalName);
-            masterProfile.setPhoneNumber(finalPhone);
-
-            // Set thông tin File (Để lần sau user vào profile thấy file này luôn)
-            masterProfile.setFileUrl(fileUrl);
-            masterProfile.setFileName(fileName);
-
-            cvRepo.save(masterProfile);
-        } else {
-            // CẬP NHẬT (Người cũ)
-            boolean needUpdate = false;
-
-            // 1. Update Tên
-            if (!finalName.equals(masterProfile.getFullName())) {
-                masterProfile.setFullName(finalName);
-                needUpdate = true;
-            }
-            // 2. Update SĐT
-            if (!finalPhone.equals(masterProfile.getPhoneNumber())) {
-                masterProfile.setPhoneNumber(finalPhone);
-                needUpdate = true;
-            }
-
-            // 3. Update File (LUÔN LUÔN UPDATE vì user vừa upload file mới)
-            // Logic: Hồ sơ gốc luôn chứa file CV mới nhất mà user từng nộp
-            masterProfile.setFileUrl(fileUrl);
-            masterProfile.setFileName(fileName);
-            needUpdate = true;
-
-            if (needUpdate) {
-                cvRepo.save(masterProfile);
-            }
-        }
-
-        // ==================================================================
-        // BƯỚC 5: TẠO SNAPSHOT ỨNG TUYỂN (is_default=0)
-        // ==================================================================
-
-        CVEntity snapshotCV = new CVEntity();
-        snapshotCV.setUser(user);
-        snapshotCV.setIsDefault(false); // Bản sao lịch sử
-
-        // Copy dữ liệu y chang như đã chốt
-        snapshotCV.setFileName(fileName);
-        snapshotCV.setFileUrl(fileUrl);
-        snapshotCV.setFullName(finalName);
-        snapshotCV.setPhoneNumber(finalPhone);
-
-        CVEntity savedSnapshot = cvRepo.save(snapshotCV);
-
-        // ==================================================================
-        // BƯỚC 6: TẠO ĐƠN APPLY
+        // BƯỚC 6: TẠO ĐƠN APPLY (Bỏ phần set CV)
         // ==================================================================
 
         ApplyJobEntity apply = new ApplyJobEntity();
         apply.setJob(job);
         apply.setUser(user);
-        apply.setCv(savedSnapshot);
+        // apply.setCv(savedSnapshot); // 4. ẨN DÒNG NÀY (Vì đã ẩn cv trong Entity)
         apply.setNote(note);
         apply.setStatus(ApplyStatus.PENDING);
         apply.setCreatedAt(LocalDateTime.now());
@@ -169,11 +82,6 @@ public class ApplyJobServiceImpl implements ApplyJobService {
         return repo.save(apply);
     }
 
-    // --- Các hàm khác giữ nguyên ---
-    @Override
-    public List<ApplyJobEntity> getApplyByEmployer(Long employerId) {
-        return repo.findByJobEmployerId(employerId);
-    }
 
     @Override
     public void updateStatus(Long applyId, ApplyStatus status) {

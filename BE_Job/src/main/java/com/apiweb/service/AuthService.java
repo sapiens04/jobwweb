@@ -5,4 +5,6 @@ import com.apiweb.repository.entity.UserEntity;
 
 public interface AuthService  {
     UserEntity register(RegisterDTO request);
+    UserEntity findByUsername(String username);
     }
+

@@ -5,29 +5,21 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "user") // Đã khớp với tên bảng bạn nói
+@AttributeOverride(name = "id", column = @Column(name = "user_id"))
 public class UserEntity extends BaseEntity {
 
     @Column(nullable = false, unique = true)
-    private String email; // Đóng vai trò là Username
+    private String username;
 
     @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
     private Role role;
-
-    // Quan hệ 1-nhiều với CV (Một User có thể có nhiều CV/Hồ sơ)
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<CVEntity> cvs;
-
-    // Quan hệ với Job (Nếu là Employer)
-    @OneToMany(mappedBy = "employer", fetch = FetchType.LAZY)
-    private List<JobEntity> postedJobs;
-
-    // Getter & Setter
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+  
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
     public Role getRole() { return role; }

@@ -12,6 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,30 +31,37 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody RegisterDTO registerDTO) {
         try {
             UserEntity registeredUser = authService.register(registerDTO);
-            return ResponseEntity.ok("Đăng ký thành công tài khoản: " + registeredUser.getEmail());
+            return ResponseEntity.ok("Đăng ký thành công tài khoản: " + registeredUser.getUsername());
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // API ĐĂNG NHẬP (MỚI THÊM)
+    // API ĐĂNG NHẬP
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
-        try {
-            // 1. Tạo đối tượng xác thực từ Email/Pass gửi lên
-            UsernamePasswordAuthenticationToken token =
-                    new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword());
+public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
+    try {
+        // 1. Tạo đối tượng xác thực từ Username/Pass gửi lên
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword());
+        Authentication authentication = authenticationManager.authenticate(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // 2. Nhờ AuthenticationManager kiểm tra (nó sẽ gọi UserDetailsService và so khớp Pass)
-            Authentication authentication = authenticationManager.authenticate(token);
 
-            // 3. Nếu đúng, lưu thông tin vào SecurityContext (Tạo session đăng nhập)
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserEntity user = authService.findByUsername(loginDTO.getUsername());
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("username", user.getUsername());
+        response.put("role", user.getRole());
 
-            return ResponseEntity.ok("Đăng nhập thành công! Chào mừng " + authentication.getName());
-
-        } catch (AuthenticationException e) {
-            return ResponseEntity.badRequest().body("Sai email hoặc mật khẩu!");
-        }
+        return ResponseEntity.ok(response);
     }
+    catch (AuthenticationException e) {
+    // Trả về lỗi định dạng JSON đồng nhất
+    Map<String, String> error = new HashMap<>();
+    error.put("status", "error");
+    error.put("message", "Sai tên đăng nhập hoặc mật khẩu!");
+    return ResponseEntity.badRequest().body(error);
+}
+}
 }
