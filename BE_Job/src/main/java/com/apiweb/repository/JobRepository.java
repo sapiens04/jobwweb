@@ -17,4 +17,5 @@ public interface JobRepository extends JpaRepository<JobEntity, Long> {
     long countByUserIdAndStatus(Long userId, JobStatus status);
     List<JobEntity> findAllByOrderByCreatedAtDesc();
     List<JobEntity> findTop6ByOrderByIdDesc();
+    Page<JobEntity> findByStatusAndTitleContaining(JobStatus status, String title, Pageable pageable);
 }   

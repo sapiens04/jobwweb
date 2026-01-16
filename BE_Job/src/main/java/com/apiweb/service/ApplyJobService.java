@@ -10,7 +10,6 @@ import java.util.List;
 public interface ApplyJobService {
 
     ApplyJobEntity apply(Long jobId, MultipartFile file,String fullName, String phoneNumber, String note, UserEntity user);
-    List<ApplyJobEntity> getApplyByEmployer(Long employerId);
 
     void updateStatus(Long applyId, ApplyStatus status);
 }
